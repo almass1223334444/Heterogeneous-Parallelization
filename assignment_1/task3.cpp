@@ -1,98 +1,119 @@
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <chrono>
-#include <omp.h>
+#include <iostream>   // Подключение библиотеки для ввода и вывода (cout, endl)
+#include <cstdlib>    // Подключение библиотеки для работы с rand() и srand()
+#include <ctime>      // Подключение библиотеки для работы со временем (time)
+#include <chrono>     // Подключение библиотеки для точного замера времени выполнения
+#include <omp.h>      // Подключение библиотеки OpenMP для параллельных вычислений
 
-#ifdef _WIN32        // Проверка: если программа компилируется под Windows
-#include <windows.h> // Подключение заголовка Windows API
-#endif   
+#ifdef _WIN32         // Проверка: если программа компилируется под Windows
+#include <windows.h>  // Подключение заголовочного файла Windows API
+#endif                // Конец условной компиляции
 
-int main() {
-     #ifdef _WIN32
-    // Устанавливает кодировку UTF-8 для вывода в консоль Windows
+int main() {          // Главная функция программы, точка входа
+
+#ifdef _WIN32
+    // Установка кодировки UTF-8 для корректного вывода кириллицы в Windows-консоли
     SetConsoleOutputCP(CP_UTF8);
 
-    // Устанавливает кодировку UTF-8 для ввода с клавиатуры в консоль Windows
+    // Установка кодировки UTF-8 для корректного ввода с клавиатуры
     SetConsoleCP(CP_UTF8);
 #endif
 
+    const int SIZE = 1'000'000;   // Количество элементов в массиве (1 миллион)
 
-
-    const int SIZE = 1'000'000;
-
-    // Динамическое выделение памяти
+    // Динамическое выделение памяти под массив из SIZE целых чисел
     int* array = new int[SIZE];
 
-    // Инициализация генератора случайных чисел
+    // Инициализация генератора случайных чисел текущим временем
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    // Заполнение массива
-    for (int i = 0; i < SIZE; i++) {
-        array[i] = std::rand();
+    // Последовательное заполнение массива случайными числами
+    for (int i = 0; i < SIZE; i++) {    // Цикл по всем элементам массива
+        array[i] = std::rand();         // Присваивание случайного значения элементу массива
     }
 
     /* ================= ПОСЛЕДОВАТЕЛЬНАЯ ВЕРСИЯ ================= */
 
+    // Запуск таймера перед последовательным поиском минимума и максимума
     auto start_seq = std::chrono::high_resolution_clock::now();
 
+    // Инициализация минимального значения первым элементом массива
     int min_seq = array[0];
+
+    // Инициализация максимального значения первым элементом массива
     int max_seq = array[0];
 
-    for (int i = 1; i < SIZE; i++) {
-        if (array[i] < min_seq)
-            min_seq = array[i];
-        if (array[i] > max_seq)
-            max_seq = array[i];
+    // Последовательный проход по массиву для поиска min и max
+    for (int i = 1; i < SIZE; i++) {    // Начинаем с 1, так как 0 уже учтён
+        if (array[i] < min_seq)         // Проверка: текущий элемент меньше минимума?
+            min_seq = array[i];         // Обновление минимума
+        if (array[i] > max_seq)         // Проверка: текущий элемент больше максимума?
+            max_seq = array[i];         // Обновление максимума
     }
 
+    // Остановка таймера после завершения последовательного алгоритма
     auto end_seq = std::chrono::high_resolution_clock::now();
+
+    // Вычисление времени выполнения последовательного алгоритма в миллисекундах
     std::chrono::duration<double, std::milli> time_seq = end_seq - start_seq;
 
     /* ================= ПАРАЛЛЕЛЬНАЯ ВЕРСИЯ (OpenMP) ================= */
 
+    // Запуск таймера перед параллельным поиском минимума и максимума
     auto start_par = std::chrono::high_resolution_clock::now();
 
+    // Глобальные переменные для хранения общего минимума и максимума
     int min_par = array[0];
     int max_par = array[0];
 
+    // Начало параллельной области OpenMP
     #pragma omp parallel
     {
+        // Локальный минимум для каждого потока
         int local_min = array[0];
+
+        // Локальный максимум для каждого потока
         int local_max = array[0];
 
+        // Распределение итераций цикла между потоками
         #pragma omp for nowait
-        for (int i = 0; i < SIZE; i++) {
-            if (array[i] < local_min)
+        for (int i = 0; i < SIZE; i++) {     // Каждый поток обрабатывает свою часть массива
+            if (array[i] < local_min)        // Поиск локального минимума
                 local_min = array[i];
-            if (array[i] > local_max)
+            if (array[i] > local_max)        // Поиск локального максимума
                 local_max = array[i];
         }
 
+        // Критическая секция — доступ к общим переменным по одному потоку
         #pragma omp critical
         {
-            if (local_min < min_par)
+            if (local_min < min_par)         // Обновление глобального минимума
                 min_par = local_min;
-            if (local_max > max_par)
+            if (local_max > max_par)         // Обновление глобального максимума
                 max_par = local_max;
         }
-    }
+    } // Конец параллельной области
 
+    // Остановка таймера после завершения параллельного алгоритма
     auto end_par = std::chrono::high_resolution_clock::now();
+
+    // Вычисление времени выполнения параллельного алгоритма в миллисекундах
     std::chrono::duration<double, std::milli> time_par = end_par - start_par;
 
     /* ================= ВЫВОД РЕЗУЛЬТАТОВ ================= */
 
+    // Вывод результатов последовательной версии
     std::cout << "Последовательная версия:" << std::endl;
     std::cout << "Минимум = " << min_seq << ", Максимум = " << max_seq << std::endl;
     std::cout << "Время: " << time_seq.count() << " мс\n" << std::endl;
 
+    // Вывод результатов параллельной версии
     std::cout << "Параллельная версия (OpenMP):" << std::endl;
     std::cout << "Минимум = " << min_par << ", Максимум = " << max_par << std::endl;
     std::cout << "Время: " << time_par.count() << " мс" << std::endl;
 
-    // Освобождение памяти
+    // Освобождение ранее выделенной динамической памяти
     delete[] array;
 
+    // Завершение программы с кодом успешного выполнения
     return 0;
 }
