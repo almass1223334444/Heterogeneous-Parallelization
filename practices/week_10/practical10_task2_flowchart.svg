@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1800">
+  <defs>
+    <style>
+      .start-end { fill: #90EE90; stroke: #000; stroke-width: 2; }
+      .process { fill: #87CEEB; stroke: #000; stroke-width: 2; }
+      .io { fill: #FFD700; stroke: #000; stroke-width: 2; }
+      .kernel { fill: #FF6B6B; stroke: #000; stroke-width: 2; }
+      .text { font-family: Arial; font-size: 12px; text-anchor: middle; }
+      .title { font-family: Arial; font-size: 18px; font-weight: bold; text-anchor: middle; }
+      .cluster-label { font-family: Arial; font-size: 14px; font-weight: bold; fill: #333; }
+      .arrow { fill: none; stroke: #000; stroke-width: 2; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#000" />
+    </marker>
+  </defs>
+  
+  <text x="550" y="30" class="title">Задание 2: Оптимизация доступа к памяти GPU</text>
+  
+  <ellipse cx="550" cy="80" rx="80" ry="30" class="start-end"/>
+  <text x="550" y="85" class="text">Начало</text>
+  
+  <line x1="550" y1="110" x2="550" y2="140" class="arrow"/>
+  
+  <rect x="450" y="140" width="200" height="60" rx="5" class="process"/>
+  <text x="550" y="165" class="text">Инициализация массива</text>
+  <text x="550" y="185" class="text">10 млн элементов</text>
+  
+  <line x1="550" y1="200" x2="550" y2="230" class="arrow"/>
+  
+  <rect x="450" y="230" width="200" height="60" rx="5" class="process"/>
+  <text x="550" y="250" class="text">cudaMalloc</text>
+  <text x="550" y="267" class="text">выделение памяти</text>
+  <text x="550" y="283" class="text">на GPU</text>
+  
+  <line x1="550" y1="290" x2="550" y2="320" class="arrow"/>
+  
+  <path d="M 470 320 L 630 320 L 610 370 L 450 370 Z" class="io"/>
+  <text x="540" y="340" class="text">cudaMemcpy</text>
+  <text x="540" y="357" class="text">Host → Device</text>
+  
+  <line x1="540" y1="370" x2="540" y2="400" class="arrow"/>
+  
+  <!-- Тест 1: Коалесцированный -->
+  <rect x="250" y="400" width="600" height="220" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="420" class="cluster-label">ТЕСТ 1: Коалесцированный доступ</text>
+  
+  <rect x="450" y="440" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="460" class="text">cudaEventCreate</text>
+  <text x="550" y="477" class="text">создание событий</text>
+  
+  <line x1="550" y1="490" x2="550" y2="510" class="arrow"/>
+  
+  <rect x="430" y="510" width="240" height="80" rx="5" class="kernel"/>
+  <text x="550" y="535" class="text" font-weight="bold">coalescedAccess kernel:</text>
+  <text x="550" y="555" class="text">потоки в warp обращаются</text>
+  <text x="550" y="572" class="text">к последовательным адресам</text>
+  <text x="550" y="588" class="text">output[idx] = input[idx] * 2 + 1</text>
+  
+  <line x1="550" y1="590" x2="550" y2="620" class="arrow"/>
+  
+  <rect x="450" y="620" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="640" class="text">cudaEventElapsedTime</text>
+  <text x="550" y="657" class="text">измерение времени T1</text>
+  
+  <line x1="550" y1="670" x2="550" y2="700" class="arrow"/>
+  
+  <!-- Тест 2: Stride -->
+  <rect x="250" y="700" width="600" height="220" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="720" class="cluster-label">ТЕСТ 2: Доступ с шагом (неэффективный)</text>
+  
+  <rect x="450" y="740" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="760" class="text">cudaEventCreate</text>
+  <text x="550" y="777" class="text">новые события</text>
+  
+  <line x1="550" y1="790" x2="550" y2="810" class="arrow"/>
+  
+  <rect x="420" y="810" width="260" height="80" rx="5" class="kernel"/>
+  <text x="550" y="835" class="text" font-weight="bold">stridedAccess kernel:</text>
+  <text x="550" y="855" class="text">доступ с большим шагом</text>
+  <text x="550" y="872" class="text">idx = (threadIdx * 32) % size</text>
+  <text x="550" y="888" class="text">разрушает коалесценцию!</text>
+  
+  <line x1="550" y1="890" x2="550" y2="920" class="arrow"/>
+  
+  <rect x="450" y="920" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="940" class="text">cudaEventElapsedTime</text>
+  <text x="550" y="957" class="text">измерение времени T2</text>
+  
+  <line x1="550" y1="970" x2="550" y2="1000" class="arrow"/>
+  
+  <!-- Тест 3: Shared Memory -->
+  <rect x="200" y="1000" width="700" height="270" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="1020" class="cluster-label">ТЕСТ 3: С разделяемой памятью</text>
+  
+  <rect x="450" y="1040" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="1060" class="text">cudaEventCreate</text>
+  <text x="550" y="1077" class="text">события для теста</text>
+  
+  <line x1="550" y1="1090" x2="550" y2="1110" class="arrow"/>
+  
+  <rect x="380" y="1110" width="340" height="130" rx="5" class="kernel"/>
+  <text x="550" y="1135" class="text" font-weight="bold">sharedMemoryKernel:</text>
+  <text x="550" y="1155" class="text">1. Загрузка в shared memory (быстро)</text>
+  <text x="550" y="1172" class="text">2. __syncthreads()</text>
+  <text x="550" y="1189" class="text">3. Обработка из shared memory</text>
+  <text x="550" y="1206" class="text">4. Запись обратно в global memory</text>
+  <text x="550" y="1223" class="text">Меньше обращений к медленной памяти!</text>
+  
+  <line x1="550" y1="1240" x2="550" y2="1270" class="arrow"/>
+  
+  <rect x="450" y="1270" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="1290" class="text">cudaEventElapsedTime</text>
+  <text x="550" y="1307" class="text">измерение времени T3</text>
+  
+  <line x1="550" y1="1320" x2="550" y2="1350" class="arrow"/>
+  
+  <!-- Тест 4: Оптимизированная организация -->
+  <rect x="200" y="1350" width="700" height="240" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="1370" class="cluster-label">ТЕСТ 4: Оптимизированная организация потоков</text>
+  
+  <rect x="450" y="1390" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="1410" class="text">cudaEventCreate</text>
+  <text x="550" y="1427" class="text">события для теста</text>
+  
+  <line x1="550" y1="1440" x2="550" y2="1460" class="arrow"/>
+  
+  <rect x="380" y="1460" width="340" height="100" rx="5" class="kernel"/>
+  <text x="550" y="1485" class="text" font-weight="bold">optimizedThreadOrganization:</text>
+  <text x="550" y="1505" class="text">каждый поток обрабатывает</text>
+  <text x="550" y="1522" class="text">4 элемента подряд</text>
+  <text x="550" y="1539" class="text">меньше накладных расходов</text>
+  <text x="550" y="1555" class="text">лучшая утилизация регистров</text>
+  
+  <line x1="550" y1="1590" x2="550" y2="1620" class="arrow"/>
+  
+  <rect x="450" y="1620" width="200" height="50" rx="5" class="process"/>
+  <text x="550" y="1640" class="text">cudaEventElapsedTime</text>
+  <text x="550" y="1657" class="text">измерение времени T4</text>
+  
+  <line x1="550" y1="1670" x2="550" y2="1700" class="arrow"/>
+  
+  <!-- Анализ -->
+  <rect x="400" y="1700" width="300" height="100" rx="5" class="process"/>
+  <text x="550" y="1725" class="text" font-weight="bold">Сравнение результатов:</text>
+  <text x="550" y="1745" class="text">• Замедление stride: T2/T1</text>
+  <text x="550" y="1762" class="text">• Ускорение shared: T1/T3</text>
+  <text x="550" y="1779" class="text">• Ускорение оптимизации: T1/T4</text>
+  
+  <line x1="550" y1="1800" x2="550" y2="1830" class="arrow"/>
+  
+  <ellipse cx="550" cy="1860" rx="80" ry="30" class="start-end"/>
+  <text x="550" y="1865" class="text">Конец</text>
+  
+</svg>

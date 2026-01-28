@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1900">
+  <defs>
+    <style>
+      .start-end { fill: #90EE90; stroke: #000; stroke-width: 2; }
+      .process { fill: #87CEEB; stroke: #000; stroke-width: 2; }
+      .io { fill: #FFD700; stroke: #000; stroke-width: 2; }
+      .decision { fill: #FFA07A; stroke: #000; stroke-width: 2; }
+      .parallel { fill: #DDA0DD; stroke: #000; stroke-width: 2; }
+      .mpi { fill: #98FB98; stroke: #000; stroke-width: 2; }
+      .text { font-family: Arial; font-size: 12px; text-anchor: middle; }
+      .title { font-family: Arial; font-size: 17px; font-weight: bold; text-anchor: middle; }
+      .cluster-label { font-family: Arial; font-size: 14px; font-weight: bold; fill: #333; }
+      .arrow { fill: none; stroke: #000; stroke-width: 2; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#000" />
+    </marker>
+  </defs>
+  
+  <text x="550" y="30" class="title">Задание 4: Анализ масштабируемости MPI</text>
+  
+  <ellipse cx="550" cy="80" rx="80" ry="30" class="start-end"/>
+  <text x="550" y="85" class="text">Начало</text>
+  
+  <line x1="550" y1="110" x2="550" y2="140" class="arrow"/>
+  
+  <rect x="450" y="140" width="200" height="40" rx="5" class="mpi"/>
+  <text x="550" y="165" class="text">MPI_Init()</text>
+  
+  <line x1="550" y1="180" x2="550" y2="210" class="arrow"/>
+  
+  <rect x="430" y="210" width="240" height="60" rx="5" class="mpi"/>
+  <text x="550" y="230" class="text">MPI_Comm_size() → N процессов</text>
+  <text x="550" y="247" class="text">MPI_Comm_rank() → мой ранг</text>
+  <text x="550" y="263" class="text">Определение параметров</text>
+  
+  <line x1="550" y1="270" x2="550" y2="300" class="arrow"/>
+  
+  <!-- Strong Scaling Test -->
+  <rect x="200" y="300" width="700" height="650" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="325" class="cluster-label">STRONG SCALING TEST (фиксированный размер)</text>
+  
+  <path d="M 550 350 L 630 390 L 550 430 L 470 390 Z" class="decision"/>
+  <text x="550" y="395" class="text">Ранг == 0?</text>
+  
+  <line x1="630" y1="390" x2="750" y2="390" class="arrow"/>
+  <text x="690" y="385" class="text">Да</text>
+  
+  <rect x="680" y="360" width="150" height="80" rx="5" class="process"/>
+  <text x="755" y="385" class="text" font-weight="bold">Root процесс:</text>
+  <text x="755" y="405" class="text">создание массива</text>
+  <text x="755" y="422" class="text">100 млн элементов</text>
+  <text x="755" y="438" class="text">инициализация</text>
+  
+  <line x1="755" y1="440" x2="755" y2="480" class="arrow"/>
+  <line x1="755" y1="480" x2="550" y2="480" class="arrow"/>
+  
+  <line x1="550" y1="430" x2="550" y2="480" class="arrow"/>
+  <text x="510" y="455" class="text">Нет</text>
+  
+  <rect x="450" y="480" width="200" height="50" rx="5" class="mpi"/>
+  <text x="550" y="500" class="text">MPI_Barrier()</text>
+  <text x="550" y="517" class="text">синхронизация всех</text>
+  
+  <line x1="550" y1="530" x2="550" y2="560" class="arrow"/>
+  
+  <rect x="450" y="560" width="200" height="40" rx="5" class="process"/>
+  <text x="550" y="585" class="text">MPI_Wtime() - старт</text>
+  
+  <line x1="550" y1="600" x2="550" y2="630" class="arrow"/>
+  
+  <rect x="420" y="630" width="260" height="60" rx="5" class="mpi"/>
+  <text x="550" y="650" class="text">MPI_Scatterv()</text>
+  <text x="550" y="667" class="text">Root раздаёт части массива</text>
+  <text x="550" y="683" class="text">каждому процессу</text>
+  
+  <line x1="550" y1="690" x2="550" y2="720" class="arrow"/>
+  
+  <!-- Параллельная обработка -->
+  <rect x="220" y="720" width="660" height="130" rx="5" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="550" y="740" class="cluster-label">Параллельные вычисления на всех процессах</text>
+  
+  <rect x="240" y="760" width="110" height="70" rx="5" class="parallel"/>
+  <text x="295" y="780" class="text" font-weight="bold">Процесс 0</text>
+  <text x="295" y="800" class="text">Вычисление</text>
+  <text x="295" y="817" class="text">суммы, min, max</text>
+  
+  <rect x="370" y="760" width="110" height="70" rx="5" class="parallel"/>
+  <text x="425" y="780" class="text" font-weight="bold">Процесс 1</text>
+  <text x="425" y="800" class="text">Вычисление</text>
+  <text x="425" y="817" class="text">суммы, min, max</text>
+  
+  <rect x="620" y="760" width="110" height="70" rx="5" class="parallel"/>
+  <text x="675" y="780" class="text" font-weight="bold">Процесс N-1</text>
+  <text x="675" y="800" class="text">Вычисление</text>
+  <text x="675" y="817" class="text">суммы, min, max</text>
+  
+  <text x="550" y="815" class="text">...</text>
+  
+  <line x1="550" y1="850" x2="550" y2="880" class="arrow"/>
+  
+  <!-- Тесты коммуникации -->
+  <rect x="410" y="880" width="280" height="80" rx="5" class="mpi"/>
+  <text x="550" y="905" class="text" font-weight="bold">Тест коммуникаций:</text>
+  <text x="550" y="925" class="text">1. MPI_Reduce (результат → root)</text>
+  <text x="550" y="942" class="text">2. MPI_Allreduce (результат → всем)</text>
+  
+  <line x1="550" y1="960" x2="550" y2="990" class="arrow"/>
+  
+  <rect x="450" y="990" width="200" height="50" rx="5" class="mpi"/>
+  <text x="550" y="1010" class="text">MPI_Barrier()</text>
+  <text x="550" y="1027" class="text">синхронизация</text>
+  
+  <line x1="550" y1="1040" x2="550" y2="1070" class="arrow"/>
+  
+  <rect x="450" y="1070" width="200" height="40" rx="5" class="process"/>
+  <text x="550" y="1095" class="text">MPI_Wtime() - стоп</text>
+  
+  <line x1="550" y1="1110" x2="550" y2="1140" class="arrow"/>
+  
+  <!-- Weak Scaling Test -->
+  <rect x="200" y="1140" width="700" height="380" rx="5" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="550" y="1165" class="cluster-label">WEAK SCALING TEST (размер растёт с процессами)</text>
+  
+  <rect x="420" y="1190" width="260" height="60" rx="5" class="process"/>
+  <text x="550" y="1210" class="text">Каждый процесс создаёт</text>
+  <text x="550" y="1227" class="text">локальный массив:</text>
+  <text x="550" y="1243" class="text">10 млн элементов</text>
+  
+  <line x1="550" y1="1250" x2="550" y2="1280" class="arrow"/>
+  
+  <rect x="450" y="1280" width="200" height="40" rx="5" class="process"/>
+  <text x="550" y="1305" class="text">MPI_Wtime() - старт</text>
+  
+  <line x1="550" y1="1320" x2="550" y2="1350" class="arrow"/>
+  
+  <!-- Параллельная обработка -->
+  <rect x="220" y="1350" width="660" height="110" rx="5" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="550" y="1370" class="cluster-label">Параллельные вычисления (фиксированная нагрузка на процесс)</text>
+  
+  <rect x="240" y="1390" width="110" height="50" rx="5" class="parallel"/>
+  <text x="295" y="1410" class="text" font-weight="bold">Процесс 0</text>
+  <text x="295" y="1427" class="text">10M элементов</text>
+  
+  <rect x="370" y="1390" width="110" height="50" rx="5" class="parallel"/>
+  <text x="425" y="1410" class="text" font-weight="bold">Процесс 1</text>
+  <text x="425" y="1427" class="text">10M элементов</text>
+  
+  <rect x="620" y="1390" width="110" height="50" rx="5" class="parallel"/>
+  <text x="675" y="1410" class="text" font-weight="bold">Процесс N-1</text>
+  <text x="675" y="1427" class="text">10M элементов</text>
+  
+  <text x="550" y="1422" class="text">...</text>
+  
+  <line x1="550" y1="1460" x2="550" y2="1490" class="arrow"/>
+  
+  <rect x="450" y="1490" width="200" height="40" rx="5" class="mpi"/>
+  <text x="550" y="1515" class="text">MPI_Reduce</text>
+  
+  <line x1="550" y1="1530" x2="550" y2="1560" class="arrow"/>
+  
+  <!-- Анализ -->
+  <rect x="350" y="1560" width="400" height="180" rx="5" class="process"/>
+  <text x="550" y="1585" class="text" font-weight="bold">АНАЛИЗ МАСШТАБИРУЕМОСТИ:</text>
+  <text x="550" y="1610" class="text">1. Сравнение времён Strong Scaling</text>
+  <text x="550" y="1627" class="text">   (должно уменьшаться с N)</text>
+  <text x="550" y="1644" class="text">2. Сравнение времён Weak Scaling</text>
+  <text x="550" y="1661" class="text">   (должно оставаться константой)</text>
+  <text x="550" y="1678" class="text">3. Влияние MPI_Reduce vs MPI_Allreduce</text>
+  <text x="550" y="1695" class="text">4. Балансировка нагрузки</text>
+  <text x="550" y="1712" class="text">5. Применение законов Амдала и Густафсона</text>
+  <text x="550" y="1728" class="text">6. Практические ограничения</text>
+  
+  <line x1="550" y1="1740" x2="550" y2="1770" class="arrow"/>
+  
+  <path d="M 470 1770 L 630 1770 L 610 1820 L 450 1820 Z" class="io"/>
+  <text x="540" y="1790" class="text">Вывод результатов</text>
+  <text x="540" y="1807" class="text">и выводов</text>
+  
+  <line x1="540" y1="1820" x2="540" y2="1850" class="arrow"/>
+  
+  <rect x="450" y="1850" width="200" height="40" rx="5" class="mpi"/>
+  <text x="550" y="1875" class="text">MPI_Finalize()</text>
+  
+  <line x1="550" y1="1890" x2="550" y2="1920" class="arrow"/>
+  
+  <ellipse cx="550" cy="1950" rx="80" ry="30" class="start-end"/>
+  <text x="550" y="1955" class="text">Конец</text>
+  
+</svg>
